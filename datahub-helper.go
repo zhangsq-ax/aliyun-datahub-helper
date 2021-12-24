@@ -23,13 +23,24 @@ func NewDataHubHelper(opts *DataHubHelperOptions) *DataHubHelper {
 // PutRecords 推送数据
 func (h *DataHubHelper) PutRecords(opts *PutRecordsOptions, records []datahub.IRecord) (*datahub.PutRecordsResult, error) {
 	return h.dh.PutRecords(opts.ProjectName, opts.TopicName, records)
-	/*if opts.ShardId == "" {
-		result, err := h.dh.PutRecords(opts.ProjectName, opts.TopicName, records)
-		fmt.Println(result, err)
-	} else {
-		result, err := h.dh.PutRecordsByShard(opts.ProjectName, opts.TopicName, opts.ShardId, records)
-		fmt.Println(result, err)
-	}*/
+}
+
+// PutTupleRecords 推送 Tuple 类型数据
+func (h *DataHubHelper) PutTupleRecords(opts *PutRecordsOptions, recordsData []map[string]interface{}) (result *datahub.PutRecordsResult, err error) {
+	records, err := h.NewTupleRecords(opts.ProjectName, opts.TopicName, recordsData)
+	if err != nil {
+		return
+	}
+	return h.PutRecords(opts, records)
+}
+
+// PutBlobRecords 推送 Blob 类型数据
+func (h *DataHubHelper) PutBlobRecords(opts *PutRecordsOptions, recordsData [][]byte) (result *datahub.PutRecordsResult, err error) {
+	var records []datahub.IRecord
+	for _, data := range recordsData {
+		records = append(records, NewBlobRecord(data, nil))
+	}
+	return h.PutRecords(opts, records)
 }
 
 // GetTopic 获取 Topic 信息
